@@ -2,7 +2,7 @@
 local Sync = {}
 
 local Event = require("una.lib.event")
-local Card = require("una.card")
+local Card = require("una.card").CardAPI
 
 local gameState = 0 -- 0 - not playing, 1 - waiting for players, 2 - playing
 

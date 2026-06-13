@@ -1,4 +1,4 @@
-local Card = require("una.card")
+local Card = require("una.card").CardAPI
 local Tween = require("una.lib.tween")
 
 local viewerName = client.getViewer():getName()

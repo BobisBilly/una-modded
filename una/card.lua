@@ -3,15 +3,15 @@
 local param = require("una.lib.param")
 local Event = require("una.lib.event")
 
-local ROOT_MODEL = models:newPart("cardWorld","WORLD"):scale(16,16,16)
+local ROOT_MODEL = models:newPart("cardWorld", "WORLD"):scale(16, 16, 16)
 local CARD_MODEL = models.una.models.card:setVisible(false)
 CARD_MODEL:setPos(0, 0, 0)
 CARD_MODEL.Outline:setPrimaryRenderType("TRANSLUCENT_CULL")
 
 local SCALE = 16
-local CARD_DIM = vec(12,16) / 16
-local INV_SCALE = 1/SCALE
-local OFFSET = vec(0,0.01,0)
+local CARD_DIM = vec(12, 16) / 16
+local INV_SCALE = 1 / SCALE
+local OFFSET = vec(0, 0.01, 0)
 
 local CARD_RADIUS_SQ = CARD_DIM:lengthSquared() / 2
 local CARD_DIM_HALF = CARD_DIM / 2
@@ -25,6 +25,9 @@ local cardIdsLookup = {} ---@type table<string, Card>
 ---@class CardAPI
 local CardAPI = {}
 
+---@class Bob
+local Bob = {}
+
 CardAPI.ROOT_MODEL = ROOT_MODEL
 
 ---@alias CardColor
@@ -35,7 +38,7 @@ CardAPI.ROOT_MODEL = ROOT_MODEL
 ---| "BLACK"
 
 local colorUV = {
-	vec( 0, 0), -- RED
+	vec(0, 0), -- RED
 	vec(10, 0), -- YELLOW
 	vec(20, 0), -- GREEN
 	vec(30, 0), -- BLUE
@@ -43,24 +46,27 @@ local colorUV = {
 }
 
 local iconUV = {
-	vec(45, 11), -- EMPTY   
-	vec( 0,  0), -- ZERO    
-	vec( 9,  0), -- ONE     
-	vec(18,  0), -- TWO     
-	vec(27,  0), -- THREE   
-	vec(36,  0), -- FOUR    
-	vec(0,  11), -- FIVE    
-	vec(9,  11), -- SIX     
-	vec(18, 11), -- SEVEN   
-	vec(27, 11), -- EIGHT   
-	vec(36, 11), -- NINE    
-	vec( 0, 22), -- REVERSE 
-	vec(18, 22), -- SKIP    
-	vec( 9, 22), -- DRAW2   
-	vec(27, 22), -- DRAW4   
-	vec(36, 22), -- WILD    
-	vec(45,  0), -- UNKNOWN 
+	vec(45, 11), -- EMPTY
+	vec(0, 0), -- ZERO
+	vec(9, 0), -- ONE
+	vec(18, 0), -- TWO
+	vec(27, 0), -- THREE
+	vec(36, 0), -- FOUR
+	vec(0, 11), -- FIVE
+	vec(9, 11), -- SIX
+	vec(18, 11), -- SEVEN
+	vec(27, 11), -- EIGHT
+	vec(36, 11), -- NINE
+	vec(0, 22), -- REVERSE
+	vec(18, 22), -- SKIP
+	vec(9, 22), -- DRAW2
+	vec(27, 22), -- DRAW4
+	vec(36, 22), -- WILD
+	vec(45, 0), -- UNKNOWN
 }
+
+Bob.iconUV = iconUV
+
 ---@alias CardType
 ---| "EMPTY"
 ---| "ZERO"
@@ -88,6 +94,8 @@ local index2color = {
 	"BLACK",
 }
 
+Bob.index2color = index2color
+
 local index2type = {
 	"EMPTY",
 	"ZERO",
@@ -108,6 +116,8 @@ local index2type = {
 	"UNKNOWN",
 }
 
+Bob.index2type = index2type
+
 local color2index = {}
 local type2index = {}
 for i, color in ipairs(index2color) do
@@ -119,13 +129,29 @@ end
 
 CardAPI.lastCardId = #index2color * #index2type
 
+function Bob.updateIndexes()
+	color2index = {}
+	type2index = {}
+
+	CardAPI.lastCardId = 0
+
+	for i, color in ipairs(index2color) do
+		color2index[color] = i
+	end
+	for i, type in ipairs(index2type) do
+		type2index[type] = i
+	end
+
+	CardAPI.lastCardId = #index2color * #index2type
+end
+
 ---converts full card id to color and type ids
 ---@param id number
 ---@return number # type
 ---@return number # color
 function CardAPI.fullIdToTypeAndColor(id)
-   id = id - 1
-   return id % #index2type + 1, math.floor(id / #index2type) + 1
+	id = id - 1
+	return id % #index2type + 1, math.floor(id / #index2type) + 1
 end
 
 ---converts card type and color to full id
@@ -133,7 +159,7 @@ end
 ---@param color number
 ---@return number
 function CardAPI.typeAndColorToFullId(cardType, color)
-   return (cardType - 1) + #index2type * (color - 1) + 1
+	return (cardType - 1) + #index2type * (color - 1) + 1
 end
 
 ---@param id integer?
@@ -145,7 +171,6 @@ function CardAPI.indexToType(id)
 	return index2type[id]
 end
 
-
 ---@param id integer?
 function CardAPI.indexToColor(id)
 	if not id then
@@ -153,7 +178,6 @@ function CardAPI.indexToColor(id)
 	end
 	return index2color[id]
 end
-
 
 ---@param clr CardColor
 ---@return integer
@@ -176,6 +200,25 @@ for color = 1, 4 do
 	end
 	table.insert(randomCardList, CardAPI.typeAndColorToFullId(15, 5))
 	table.insert(randomCardList, CardAPI.typeAndColorToFullId(16, 5))
+end
+
+function Bob.updateCardList()
+	randomCardList = {}
+	for color = 1, 4 do
+		for cardType = 2, 14 do
+			local id = CardAPI.typeAndColorToFullId(cardType, color)
+			table.insert(randomCardList, id)
+			table.insert(randomCardList, id) -- give higher chance to colorful cards
+		end
+		for cardType = 18, #index2type do
+			local id = CardAPI.typeAndColorToFullId(cardType, color)
+			table.insert(randomCardList, id)
+			table.insert(randomCardList, id)
+		end
+
+		table.insert(randomCardList, CardAPI.typeAndColorToFullId(15, 5))
+		table.insert(randomCardList, CardAPI.typeAndColorToFullId(16, 5))
+	end
 end
 
 ---@return number
@@ -226,52 +269,52 @@ local nextFree = 0
 function CardAPI.new(parent)
 	nextFree = nextFree + 1
 	local model = (parent or ROOT_MODEL):newPart("card" .. nextFree)
-	local model2 = model:newPart('')
+	local model2 = model:newPart("")
 
 	---@type Card
 	local new = {
 		idx = nextFree, -- index
 		color = 1,
 		type = 1,
-		dir = vec(0,1,0),
+		dir = vec(0, 1, 0),
 
-		pos = vec(0,0,0),
-		rot = vec(0,0,0),
-		scale = vec(1,1,1),
-		offset = vec(0,0,0),
+		pos = vec(0, 0, 0),
+		rot = vec(0, 0, 0),
+		scale = vec(1, 1, 1),
+		offset = vec(0, 0, 0),
 
-		animPos = vec(0,0,0),
-		animRot = vec(0,0,0),
-		animScale = vec(1,1,1),
+		animPos = vec(0, 0, 0),
+		animRot = vec(0, 0, 0),
+		animScale = vec(1, 1, 1),
 
 		animMatrix = matrices.mat4(),
 		matrix = matrices.mat4(),
 		invMatrix = matrices.mat4(),
 		model = model,
 		model2 = model2,
-		
+
 		PRESSED = Event.new(),
 		CARD_HOVER = Event.new(),
 	}
 	for key, original in pairs(CARD_MODEL:getChildren()) do
-		local part = original:copy(original:getName()):scale(INV_SCALE):setPos(original:getPos()+OFFSET):setRot(original:getRot())
+		local part = original:copy(original:getName()):scale(INV_SCALE):setPos(original:getPos() +
+			OFFSET):setRot(original:getRot())
 		model2:addChild(part)
 	end
 	setmetatable(new, Card)
 	new:matrixApply()
 	cards[nextFree] = new
-	new.model2.Icon:setUVPixels(math.random(0,2)*8,0)
+	new.model2.Icon:setUVPixels(math.random(0, 2) * 8, 0)
 	return new
 end
 
-
 ---```
 ---
---- 1 RED  
---- 2 YELLOW  
---- 3 GREEN  
---- 4 BLUE  
---- 5 BLACK  
+--- 1 RED
+--- 2 YELLOW
+--- 3 GREEN
+--- 4 BLUE
+--- 5 BLACK
 ---```
 ---@param color integer
 ---@return Card
@@ -286,11 +329,11 @@ end
 
 ---```
 ---
----1 EMPTY  6 FOUR   11 NINE  16 WILD  
+---1 EMPTY  6 FOUR   11 NINE  16 WILD
 ---2 ZERO   7 FIVE   12 REVERSE  17 UNKNOWN
----3 ONE    8 SIX    13 SKIP  
----4 TWO    9 SEVEN  14 DRAW2  
----5 THREE  10 EIGHT 15 DRAW4  
+---3 ONE    8 SIX    13 SKIP
+---4 TWO    9 SEVEN  14 DRAW2
+---5 THREE  10 EIGHT 15 DRAW4
 ---```
 ---@param type integer
 ---@return Card
@@ -302,7 +345,6 @@ function Card:setType(type)
 	self.model2.numbers:setUVPixels(iconUV[type])
 	return self
 end
-
 
 --- snippet by @PenguinEncounter
 ---@param mat Matrix4|Matrix3
@@ -332,11 +374,11 @@ end
 ---@return Card
 function Card:matrixApply()
 	self.matrix = matrices.mat4()
-	:rotateX(self.rot.x)
-	:rotateY(self.rot.y)
-	:rotateZ(self.rot.z)
-	:scale(self.scale)
-	:translate(self.pos + self.offset)
+		:rotateX(self.rot.x)
+		:rotateY(self.rot.y)
+		:rotateZ(self.rot.z)
+		:scale(self.scale)
+		:translate(self.pos + self.offset)
 	self.invMatrix = self.matrix:inverted()
 	self.dir = self.matrix.c2.xyz:normalize()
 	self.model:setMatrix(self.matrix)
@@ -344,14 +386,13 @@ function Card:matrixApply()
 	return self
 end
 
-
 function Card:animMatrixApply()
 	self.animMatrix = matrices.mat4()
-	:rotateZ(self.animRot.z)
-	:rotateY(self.animRot.y)
-	:rotateX(self.animRot.x)
-	:scale(self.animScale)
-	:translate(self.animPos)
+		:rotateZ(self.animRot.z)
+		:rotateY(self.animRot.y)
+		:rotateX(self.animRot.x)
+		:scale(self.animScale)
+		:translate(self.animPos)
 	self:matrixApply()
 	return self
 end
@@ -362,10 +403,9 @@ function Card:matrixUnfold()
 	self.pos = self.matrix.c4.xyz
 	self.dir = self.matrix.c2.xyz:normalize()
 	self.rot = mat2eulerZYX(self.matrix)
-	self.offset = vec(0,0,0)
+	self.offset = vec(0, 0, 0)
 	return self
 end
-
 
 ---@overload fun(self:Card,pos:Vector3):Card
 ---@param x number
@@ -400,7 +440,6 @@ function Card:setRot(x, y, z)
 	return self
 end
 
-
 ---@overload fun(scale:Vector3):Card
 ---@param x number
 ---@param y number
@@ -412,42 +451,38 @@ function Card:setScale(x, y, z)
 	return self
 end
 
+---@overload fun(pos:Vector3):Card
+---@param x number
+---@param y number
+---@param z number
+---@return Card
+function Card:setAnimPos(x, y, z)
+	self.animPos = param.vec3(x, y, z)
+	self:animMatrixApply()
+	return self
+end
 
 ---@overload fun(pos:Vector3):Card
 ---@param x number
 ---@param y number
 ---@param z number
 ---@return Card
-function Card:setAnimPos(x,y,z)
-	self.animPos = param.vec3(x,y,z)
+function Card:setAnimRot(x, y, z)
+	self.animRot = param.vec3(x, y, z)
 	self:animMatrixApply()
 	return self
 end
-
 
 ---@overload fun(pos:Vector3):Card
 ---@param x number
 ---@param y number
 ---@param z number
 ---@return Card
-function Card:setAnimRot(x,y,z)
-	self.animRot = param.vec3(x,y,z)
+function Card:setAnimScale(x, y, z)
+	self.animScale = param.vec3(x, y, z)
 	self:animMatrixApply()
 	return self
 end
-
-
----@overload fun(pos:Vector3):Card
----@param x number
----@param y number
----@param z number
----@return Card
-function Card:setAnimScale(x,y,z)
-	self.animScale = param.vec3(x,y,z)
-	self:animMatrixApply()
-	return self
-end
-
 
 ---The given name will be the only one able to click the card
 ---@param name string?
@@ -457,26 +492,24 @@ function Card:setOwner(name)
 	return self
 end
 
-
 ---@param text string?
 ---@param scale number?
 ---@return Card
-function Card:setLabel(text,scale)
+function Card:setLabel(text, scale)
 	self.model:removeTask("label")
 	if text then
-		local S = INV_SCALE*(scale or 1)
+		local S = INV_SCALE * (scale or 1)
 		self.model2:newText("label")
-		:setLight(15,15)
-		:setScale(S)
-		:setText(text)
-		:setRot(90,0,0)
-		:setAlignment("CENTER")
-		:setOutline(true)
-		:setPos(-0.5*S,0.3*INV_SCALE,(client.getTextHeight(text)*0.5-1)*S)
+			:setLight(15, 15)
+			:setScale(S)
+			:setText(text)
+			:setRot(90, 0, 0)
+			:setAlignment("CENTER")
+			:setOutline(true)
+			:setPos(-0.5 * S, 0.3 * INV_SCALE, (client.getTextHeight(text) * 0.5 - 1) * S)
 	end
 	return self
 end
-
 
 ---Returns the position of the card in global space
 ---@overload fun(self: Card ,pos : Vector3): Vector3
@@ -484,11 +517,10 @@ end
 ---@param y number
 ---@param z number
 ---@return Vector3
-function Card:toGlobal(x,y,z)
-	local pos = param.vec3(x,y,z)
-	return self.matrix:apply(pos*CARD_DIM_HALF.x_y)
+function Card:toGlobal(x, y, z)
+	local pos = param.vec3(x, y, z)
+	return self.matrix:apply(pos * CARD_DIM_HALF.x_y)
 end
-
 
 ---Returns the position of the card in local space
 ---@overload fun(self: Card ,pos : Vector3): Vector3
@@ -496,11 +528,10 @@ end
 ---@param y number
 ---@param z number
 ---@return Vector3
-function Card:toLocal(x,y,z)
-	local pos = param.vec3(x,y,z)
-	return self.invMatrix:apply(pos*CARD_DIM_HALF.x_y)
+function Card:toLocal(x, y, z)
+	local pos = param.vec3(x, y, z)
+	return self.invMatrix:apply(pos * CARD_DIM_HALF.x_y)
 end
-
 
 ---@param tag string?
 ---@return Card
@@ -539,7 +570,6 @@ function Card:free()
 	end
 end
 
-
 --- Clears all the cards
 function CardAPI.clearAll()
 	for key, value in pairs(cards) do
@@ -572,15 +602,12 @@ function CardAPI.applyToCardWithTag(tag, func)
 	end
 end
 
-
-
-
 ---@param pos Vector3
 ---@param dir Vector3
 ---@param planeDir Vector3
 ---@param planePos Vector3
 ---@return Vector3?
-local function ray2PlaneIntersection(pos,dir,planePos,planeDir)
+local function ray2PlaneIntersection(pos, dir, planePos, planeDir)
 	local dn = dir:normalized()
 	local pdn = planeDir:normalized()
 
@@ -599,21 +626,21 @@ end
 ---@param name string
 ---@return Card?
 ---@return Vector3?
-local function raycastCard(pos,dir,name)
+local function raycastCard(pos, dir, name)
 	local closest = math.huge
 	local chosenHitPos
 	local hitCard
-	
+
 	for _, card in pairs(cards) do
 		local cardMat = card.model:partToWorldMatrix()
 		local cardPos = cardMat:apply()
-		local hitPos = ray2PlaneIntersection(pos, dir, cardPos, cardMat:applyDir(0,1,0))
+		local hitPos = ray2PlaneIntersection(pos, dir, cardPos, cardMat:applyDir(0, 1, 0))
 		if hitPos then
-			local distToCam = (hitPos-pos):lengthSquared()
-				
-			if closest > distToCam and (hitPos-cardPos):lengthSquared() < CARD_RADIUS_SQ then
+			local distToCam = (hitPos - pos):lengthSquared()
+
+			if closest > distToCam and (hitPos - cardPos):lengthSquared() < CARD_RADIUS_SQ then
 				local lpos = cardMat:invert():apply(hitPos)
-				
+
 				if math.abs(lpos.x) < CARD_DIM_HALF.x and math.abs(lpos.z) < CARD_DIM_HALF.y then
 					hitCard = card
 					card.hitPos = lpos.xz
@@ -646,7 +673,7 @@ function CardAPI.forceSelectedCard(card)
 		card = card,
 		pos = pos,
 		dir = dir,
-		lastCard = lastSelectedCard[viewer:getName()]
+		lastCard = lastSelectedCard[viewer:getName()],
 	}
 end
 
@@ -697,4 +724,4 @@ else
 	end)
 end
 
-return CardAPI
+return { CardAPI = CardAPI, Bob = Bob }

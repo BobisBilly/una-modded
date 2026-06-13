@@ -2,10 +2,12 @@
 	"name": "UNA",
 	"description": "UNOrginal? card game",
 	"authors": [
-		"GNanimates",
-		"AuriaFoxGirl",
+		":@gn: GNanimates :@gn:",
+		":@auria: AuriaFoxGirl :@auria:",
 		"§f§nArtist§r",
-		"ToastTextures"
+		":@toast: ToastTextures :@toast:",
+		"§f§n↓ Who is this guy? ↓§r",
+		":aga: BobisBilly :aga:"
 	],
 	"color": "#ffeb57",
 	"badge_color_donator": "#ffeb57"

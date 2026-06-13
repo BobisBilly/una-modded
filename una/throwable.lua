@@ -1,4 +1,4 @@
-local Card = require("una.card")
+local Card = require("una.card").CardAPI
 local Throwable = {}
 local throwableRender = models:newPart("una.throwableRender", "World")
 

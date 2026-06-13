@@ -1,0 +1,10 @@
+1. Add Custom Card Support (DONE)
+	- Setting card type (USER)
+	- Setting card ID (AUTO)
+	- Setting card UV (AUTO or USER)
+
+2. Add Custom Color Support
+	- Card whitelist
+	- Card Blacklist
+
+2. Add Custom Card Functionality (e.g. Skip 2 card)
