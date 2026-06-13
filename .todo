@@ -3,8 +3,8 @@
 	- Setting card ID (AUTO)
 	- Setting card UV (AUTO or USER)
 
-2. Add Custom Color Support
-	- Card whitelist
-	- Card Blacklist
+2. Add Custom Color Support (DONE)
+	- Card whitelist (USER)
+	- Card Blacklist (USER)
 
 2. Add Custom Card Functionality (e.g. Skip 2 card)

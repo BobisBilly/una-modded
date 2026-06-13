@@ -66,6 +66,7 @@ local iconUV = {
 }
 
 Bob.iconUV = iconUV
+Bob.colorUV = colorUV
 
 ---@alias CardType
 ---| "EMPTY"
@@ -202,22 +203,36 @@ for color = 1, 4 do
 	table.insert(randomCardList, CardAPI.typeAndColorToFullId(16, 5))
 end
 
-function Bob.updateCardList()
+---@param controlList table?
+function Bob.updateCardList(controlList)
+	controlList = controlList or { type = nil, blacklist = {}, whitelist = {} }
+
 	randomCardList = {}
-	for color = 1, 4 do
+	for color = 1, #index2color do
+		if color == 5 then goto continue end
 		for cardType = 2, 14 do
+			if controlList then
+				if color == controlList.type and (controlList.blacklist[cardType - 1] and not controlList.whitelist[cardType - 1]) then goto nextCard end
+			end
+
 			local id = CardAPI.typeAndColorToFullId(cardType, color)
 			table.insert(randomCardList, id)
 			table.insert(randomCardList, id) -- give higher chance to colorful cards
+			::nextCard::
 		end
 		for cardType = 18, #index2type do
+			if controlList then
+				if color == controlList.type and (controlList.blacklist[cardType - 1] and not controlList.whitelist[cardType - 1]) then goto nextCard end
+			end
+
 			local id = CardAPI.typeAndColorToFullId(cardType, color)
 			table.insert(randomCardList, id)
-			table.insert(randomCardList, id)
+			::nextCard::
 		end
 
 		table.insert(randomCardList, CardAPI.typeAndColorToFullId(15, 5))
 		table.insert(randomCardList, CardAPI.typeAndColorToFullId(16, 5))
+		::continue::
 	end
 end
 

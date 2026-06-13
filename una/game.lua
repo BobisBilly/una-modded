@@ -1,5 +1,6 @@
 local Sync = require("./sync") ---@module "una.sync"
 local Card = require("./card").CardAPI ---@type CardAPI
+local Bob = require("./card").Bob ---@type Bob
 local Macro = require("./lib/macro") ---@type MacroAPI
 local Tween = require("una.lib.tween")
 local Throwable = require("una.throwable")
@@ -1116,7 +1117,8 @@ local sceneGame = Macro.new(function (events, ...)
 		if color ~= 254 then
 			return
 		end
-		for i = 1, 4 do
+		for i = 1, #Bob.index2color > 5 and #Bob.index2color or 4 do
+			if i == 5 then goto continue end
 			local x = i % 2 - 0.5
 			local y = math.floor((i - 1) / 2) - 0.5
 			local scale = 0.5
@@ -1144,6 +1146,7 @@ local sceneGame = Macro.new(function (events, ...)
 					card:setPos(pos * v + vec(0, height, 0))
 				end
 			}
+		    ::continue::
 		end
 	end, "gameColorChanged")
 
@@ -1235,7 +1238,7 @@ local sceneGame = Macro.new(function (events, ...)
 
 	if host:isHost() then
 		for i, name in ipairs(Sync.getPlayersOrder()) do
-			for k = 1, 1, 1 do
+			for k = 1, 48, 1 do
 				Sync.drawCard(name, Card.getRandomCard())
 			end
 			-- Sync.drawCard(name, Card.typeAndColorToFullId(15, 5))
@@ -1495,7 +1498,7 @@ if host:isHost() then
 
 	local setMode
 
-	action:setTexture(textures["una.atlas"], 48, 48, 16, 16, 1.5)
+	action:setTexture(textures:getTextures()[1], 48, 48, 16, 16, 1.5)
 
 	local function playGame()
 		Game.placeOnTargetedBlock()

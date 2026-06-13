@@ -371,7 +371,7 @@
 	],
 	"textures": [
 		{
-			"name": "atlas.png",
+			"name": "example_atlas.png",
 			"folder": "",
 			"namespace": "",
 			"id": "0",
@@ -395,7 +395,7 @@
 			"internal": false,
 			"saved": true,
 			"uuid": "334bf197-e2fe-6d06-0d50-b5f611a17ceb",
-			"relative_path": "atlas.png"
+			"relative_path": "example_atlas.png"
 		}
 	],
 	"animations": [
